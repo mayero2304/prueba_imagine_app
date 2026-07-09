@@ -1,0 +1,25 @@
+{
+  "name": "prueba_imagine_app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "install:backend": "python3 -m venv backend/.venv && backend/.venv/bin/pip install --upgrade pip && backend/.venv/bin/pip install -r backend/requirements.txt -r backend/requirements-dev.txt",
+    "install:frontend": "npm install --prefix frontend",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "dev:backend": "cd backend && .venv/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f db",
+    "docker:local:up": "docker compose up -d db",
+    "docker:local:down": "docker compose down",
+    "docker:local:logs": "docker compose logs -f",
+    "lint:backend": "cd backend && .venv/bin/ruff check app tests",
+    "lint:frontend": "npm run lint --prefix frontend",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "test:backend": "cd backend && .venv/bin/pytest",
+    "test": "npm run test:backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build": "npm run build:frontend"
+  }
+}
