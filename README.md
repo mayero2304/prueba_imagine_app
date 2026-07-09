@@ -4,8 +4,11 @@ Aplicacion web para gestionar clientes y tickets de soporte, desarrollada como p
 
 ## Documentacion del proyecto
 
+- [Repositorio GitHub](https://github.com/mayero2304/prueba_imagine_app)
 - [Tablero Kanban en GitHub](https://github.com/users/mayero2304/projects/4/views/1?layout=board)
 - [PDF de la prueba](<PRUEBA TÉCNICA - DESARROLALDOR FINANZ.pdf>)
+- [Flujo de la aplicacion](docs/flujo-aplicacion.md)
+- [Modelo de datos y DER](docs/modelo-datos.md)
 - [Coleccion Postman](docs/postman/PRUEBA_IMAGINE_APP.postman_collection.json)
 
 Para importar la coleccion en Postman, use el archivo:
@@ -42,7 +45,7 @@ Salvo que el bloque indique un `cd` especifico, ejecuta los comandos desde la ra
 | Modo | Uso recomendado |
 | --- | --- |
 | [Local PC](#local-pc) | Desarrollo con Node.js, Python y PostgreSQL local por Docker. |
-| [Local Docker](#local-docker) | Por completar cuando el backend y frontend esten listos para contenerizar. |
+| [Local Docker](#local-docker) | Levantar todo el stack construido con Docker Compose. |
 
 ### Local PC
 
@@ -115,22 +118,29 @@ npm run build
 
 ### Local Docker
 
-En esta primera base, Docker Compose levanta PostgreSQL para desarrollo local:
+Docker Compose construye y levanta PostgreSQL, backend FastAPI y frontend React servido por Nginx:
 
 ```bash
 npm run docker:local:up
 ```
 
+Comando equivalente requerido por la prueba:
+
+```bash
+docker compose up --build
+```
+
+URLs:
+
+- Frontend: <http://localhost:5174>
+- Backend: <http://localhost:8000>
+- Healthcheck: <http://localhost:8000/health>
+- Swagger: <http://localhost:8000/docs>
+
 Apagar servicios:
 
 ```bash
 npm run docker:local:down
-```
-
-El siguiente bloque del proyecto debe agregar `Dockerfile` para backend y frontend, de modo que el comando obligatorio de la prueba levante toda la solucion:
-
-```bash
-docker compose up
 ```
 
 ## Stack definido
@@ -149,7 +159,7 @@ docker compose up
 | `npm run install:all` | Instala dependencias de backend y frontend. |
 | `npm run dev:backend` | Ejecuta FastAPI en modo desarrollo. |
 | `npm run dev:frontend` | Ejecuta React/Vite en modo desarrollo. |
-| `npm run db:up` | Levanta PostgreSQL con Docker Compose. |
+| `npm run db:up` | Levanta PostgreSQL con Docker Compose para desarrollo local. |
 | `npm run db:down` | Apaga los servicios de Docker Compose. |
 | `npm run db:reset` | Borra el volumen local y levanta PostgreSQL limpio. |
 | `npm run db:seed` | Carga clientes y tickets demo. |
@@ -158,14 +168,6 @@ docker compose up
 | `npm run lint` | Ejecuta linters de backend y frontend. |
 | `npm test` | Ejecuta pruebas del backend. |
 | `npm run build` | Compila el frontend. |
+| `npm run docker:local:up` | Construye y levanta frontend, backend y PostgreSQL. |
+| `npm run docker:local:down` | Apaga el stack Docker. |
 
-## Siguiente orden de trabajo
-
-1. Implementar modelos y persistencia PostgreSQL.
-2. Crear endpoints de clientes.
-3. Crear endpoints de tickets.
-4. Construir vistas React para clientes y tickets.
-5. Agregar pruebas unitarias e integracion.
-6. Contenerizar backend y frontend.
-7. Agregar GitHub Actions.
-8. Completar `salesforce.md` como plus.
