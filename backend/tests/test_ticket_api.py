@@ -43,6 +43,34 @@ def test_create_list_and_update_ticket_status(client: TestClient) -> None:
     assert len(list_response.json()) == 1
 
 
+def test_ticket_status_cannot_jump_from_pending_to_finished(
+    client: TestClient,
+) -> None:
+    customer_id = create_customer(client)
+    create_response = client.post(
+        "/api/tickets",
+        json={
+            "customer_id": customer_id,
+            "title": "Validar flujo",
+            "description": "No debe saltar directamente a finalizado.",
+        },
+    )
+    ticket = create_response.json()
+
+    response = client.patch(
+        f"/api/tickets/{ticket['id']}/status",
+        json={"status": "Finalizado"},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["statusCode"] == 400
+    assert response.json()["error"] == "Bad Request"
+    assert (
+        response.json()["message"]
+        == "Invalid ticket status transition from Pendiente to Finalizado"
+    )
+
+
 def test_create_ticket_rejects_unknown_customer(client: TestClient) -> None:
     response = client.post(
         "/api/tickets",

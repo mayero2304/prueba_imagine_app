@@ -3,7 +3,14 @@ from sqlalchemy.orm import Session
 from app.repositories.customer_repository import CustomerRepository
 from app.repositories.ticket_repository import TicketRepository
 from app.schemas.ticket import TicketCreate, TicketStatus
-from app.services.exceptions import NotFoundError
+from app.services.exceptions import DomainError, NotFoundError
+
+
+ALLOWED_STATUS_TRANSITIONS = {
+    TicketStatus.PENDING: {TicketStatus.IN_PROGRESS},
+    TicketStatus.IN_PROGRESS: {TicketStatus.FINISHED},
+    TicketStatus.FINISHED: set(),
+}
 
 
 class TicketService:
@@ -25,5 +32,16 @@ class TicketService:
 
         if ticket is None:
             raise NotFoundError("Ticket not found")
+
+        current_status = TicketStatus(ticket.status)
+        allowed_next_statuses = ALLOWED_STATUS_TRANSITIONS[current_status]
+
+        if status == current_status:
+            return ticket
+
+        if status not in allowed_next_statuses:
+            raise DomainError(
+                f"Invalid ticket status transition from {current_status.value} to {status.value}"
+            )
 
         return self.ticket_repository.update_status(ticket, status)
