@@ -68,6 +68,14 @@ Levantar PostgreSQL:
 npm run db:up
 ```
 
+Reiniciar la base de datos con datos de prueba:
+
+```bash
+npm run db:fresh
+```
+
+Este comando borra el volumen local de PostgreSQL, levanta una base limpia y carga clientes/tickets demo.
+
 Configurar variables de entorno:
 
 ```bash
@@ -143,6 +151,9 @@ docker compose up
 | `npm run dev:frontend` | Ejecuta React/Vite en modo desarrollo. |
 | `npm run db:up` | Levanta PostgreSQL con Docker Compose. |
 | `npm run db:down` | Apaga los servicios de Docker Compose. |
+| `npm run db:reset` | Borra el volumen local y levanta PostgreSQL limpio. |
+| `npm run db:seed` | Carga clientes y tickets demo. |
+| `npm run db:fresh` | Ejecuta reset y seed para iniciar pruebas desde cero. |
 | `npm run db:logs` | Muestra logs de PostgreSQL. |
 | `npm run lint` | Ejecuta linters de backend y frontend. |
 | `npm test` | Ejecuta pruebas del backend. |
