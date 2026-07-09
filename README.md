@@ -18,6 +18,7 @@ Aplicacion web para gestionar clientes y tickets de soporte, desarrollada como p
 - Base de datos PostgreSQL.
 - Docker Compose para levantar PostgreSQL, backend y frontend.
 - Frontend servido como build estatico con Nginx en Docker.
+- Auditoria opcional de cambios de estado en MongoDB.
 - Pruebas automatizadas con Pytest.
 - Linters para backend y frontend.
 - Pipeline CI con GitHub Actions.
@@ -32,15 +33,21 @@ frontend React/Vite
         | HTTP / JSON
         v
 backend FastAPI
-        |
-        | SQLAlchemy
-        v
+     |          |
+     |          | eventos de auditoria opcionales
+     |          v
+     |       MongoDB
+     |
+     | SQLAlchemy
+     v
 PostgreSQL
 ```
 
 En desarrollo local, Vite sirve el frontend con hot reload y FastAPI corre con `uvicorn --reload`.
 
 En Docker, el frontend se compila primero y luego Nginx sirve los archivos estaticos generados por React. El backend corre como servicio independiente de FastAPI y se conecta a PostgreSQL dentro de la red de Docker Compose.
+
+MongoDB se usa solo como valor agregado para auditoria. Si MongoDB no esta disponible, el cambio de estado del ticket sigue funcionando y el backend registra un warning en logs.
 
 ## Requisitos
 
@@ -107,7 +114,8 @@ URLs locales:
 
 ## Ejecucion con Docker
 
-Docker Compose construye y levanta PostgreSQL, backend y frontend:
+Docker Compose construye y levanta PostgreSQL, backend y frontend.
+Tambien levanta MongoDB para registrar auditoria de cambios de estado.
 
 ```bash
 npm run docker:local:up
@@ -125,6 +133,7 @@ URLs con Docker:
 - Backend: <http://localhost:8000>
 - Healthcheck: <http://localhost:8000/health>
 - Swagger: <http://localhost:8000/docs>
+- MongoDB: `localhost:27017`
 
 Apagar servicios:
 
@@ -149,6 +158,10 @@ Backend:
 | `API_PREFIX` | Prefijo de rutas de API | `/api` |
 | `DATABASE_URL` | Conexion SQLAlchemy a PostgreSQL | `postgresql+psycopg://postgres:postgres@localhost:5432/imagine_support` |
 | `BACKEND_CORS_ORIGINS` | Origenes permitidos para CORS | `http://localhost:5173,http://localhost:5174` |
+| `MONGO_AUDIT_ENABLED` | Activa o desactiva auditoria en MongoDB | `false` en local PC, `true` en Docker |
+| `MONGO_URL` | Conexion a MongoDB | `mongodb://localhost:27017` |
+| `MONGO_DATABASE` | Base de datos de auditoria | `imagine_support_audit` |
+| `MONGO_AUDIT_COLLECTION` | Coleccion de eventos | `ticket_events` |
 
 Frontend:
 
@@ -166,6 +179,10 @@ Docker Compose:
 | `POSTGRES_PORT` | Puerto local de PostgreSQL | `5432` |
 | `BACKEND_PORT` | Puerto local del backend | `8000` |
 | `FRONTEND_PORT` | Puerto local del frontend Docker | `5174` |
+| `MONGO_PORT` | Puerto local de MongoDB | `27017` |
+| `MONGO_AUDIT_ENABLED` | Activa auditoria al correr Docker Compose | `true` |
+| `MONGO_DATABASE` | Base de datos de auditoria | `imagine_support_audit` |
+| `MONGO_AUDIT_COLLECTION` | Coleccion de eventos | `ticket_events` |
 
 ## Endpoints principales
 
@@ -186,6 +203,16 @@ Pendiente -> En progreso -> Finalizado
 ```
 
 El backend valida que no se salte de `Pendiente` directamente a `Finalizado`.
+
+Cuando ocurre una transicion valida, el backend registra un evento de auditoria en MongoDB con:
+
+- `ticket_id`
+- `customer_id`
+- `action`
+- `previous_status`
+- `new_status`
+- `user`
+- `occurred_at`
 
 ## Postman
 
@@ -239,6 +266,23 @@ Resetear y cargar datos demo en un solo paso:
 ```bash
 npm run db:fresh
 ```
+
+## Auditoria en MongoDB
+
+Con el stack Docker levantado, cambiar el estado de un ticket genera documentos en:
+
+```text
+database: imagine_support_audit
+collection: ticket_events
+```
+
+Para revisar eventos desde la terminal:
+
+```bash
+docker compose exec mongo mongosh imagine_support_audit --eval "db.ticket_events.find().pretty()"
+```
+
+La auditoria esta desacoplada del flujo principal. Si MongoDB falla, el backend no cancela la actualizacion del ticket porque PostgreSQL sigue siendo la fuente principal de datos de la aplicacion.
 
 ## Calidad
 
@@ -307,6 +351,7 @@ El pipeline corre en `push` y `pull_request` contra `main`:
 - [x] Frontend React implementado.
 - [x] PostgreSQL configurado.
 - [x] Docker Compose configurado.
+- [x] MongoDB de auditoria configurado como plus opcional.
 - [x] Validacion de flujo de estados de tickets.
 - [x] Manejo normalizado de errores.
 - [x] Seed de datos para pruebas.

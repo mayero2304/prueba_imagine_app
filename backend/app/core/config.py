@@ -12,6 +12,10 @@ class Settings(BaseSettings):
         default="postgresql+psycopg://postgres:postgres@localhost:5432/imagine_support"
     )
     backend_cors_origins: str = "http://localhost:5173"
+    mongo_audit_enabled: bool = False
+    mongo_url: str = "mongodb://localhost:27017"
+    mongo_database: str = "imagine_support_audit"
+    mongo_audit_collection: str = "ticket_events"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

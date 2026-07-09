@@ -27,5 +27,10 @@ flowchart TD
   R -- Pendiente a En progreso --> S[PATCH /api/tickets/id/status]
   R -- En progreso a Finalizado --> S
   R -- Salto invalido --> T[Error normalizado 400]
-  S --> U[Ticket actualizado]
+  S --> U[Ticket actualizado en PostgreSQL]
+  U --> V{MongoDB disponible}
+  V -- Si --> W[Guardar evento de auditoria]
+  V -- No --> X[Registrar warning en logs]
+  W --> Y[Responder ticket actualizado]
+  X --> Y
 ```

@@ -1,5 +1,7 @@
 from fastapi.testclient import TestClient
 
+from app.services.audit_service import AuditService
+
 
 def create_customer(client: TestClient) -> int:
     response = client.post(
@@ -86,3 +88,42 @@ def test_create_ticket_rejects_unknown_customer(client: TestClient) -> None:
     assert response.json()["error"] == "Not Found"
     assert response.json()["message"] == "Customer not found"
     assert response.json()["path"] == "/api/tickets"
+
+
+def test_update_ticket_status_records_audit_event(
+    client: TestClient,
+    monkeypatch,
+) -> None:
+    recorded_events = []
+
+    def record_ticket_status_change(_, **event):
+        recorded_events.append(event)
+
+    monkeypatch.setattr(
+        AuditService,
+        "record_ticket_status_change",
+        record_ticket_status_change,
+    )
+
+    customer_id = create_customer(client)
+    create_response = client.post(
+        "/api/tickets",
+        json={
+            "customer_id": customer_id,
+            "title": "Auditar estado",
+            "description": "Debe registrar el cambio de estado en auditoria.",
+        },
+    )
+    ticket = create_response.json()
+
+    response = client.patch(
+        f"/api/tickets/{ticket['id']}/status",
+        json={"status": "En progreso"},
+    )
+
+    assert response.status_code == 200
+    assert len(recorded_events) == 1
+    assert recorded_events[0]["ticket_id"] == ticket["id"]
+    assert recorded_events[0]["customer_id"] == customer_id
+    assert recorded_events[0]["previous_status"].value == "Pendiente"
+    assert recorded_events[0]["new_status"].value == "En progreso"

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.repositories.customer_repository import CustomerRepository
 from app.repositories.ticket_repository import TicketRepository
 from app.schemas.ticket import TicketCreate, TicketStatus
+from app.services.audit_service import AuditService
 from app.services.exceptions import DomainError, NotFoundError
 
 
@@ -17,6 +18,7 @@ class TicketService:
     def __init__(self, db: Session) -> None:
         self.customer_repository = CustomerRepository(db)
         self.ticket_repository = TicketRepository(db)
+        self.audit_service = AuditService()
 
     def list_tickets(self):
         return self.ticket_repository.list()
@@ -44,4 +46,12 @@ class TicketService:
                 f"Invalid ticket status transition from {current_status.value} to {status.value}"
             )
 
-        return self.ticket_repository.update_status(ticket, status)
+        updated_ticket = self.ticket_repository.update_status(ticket, status)
+        self.audit_service.record_ticket_status_change(
+            ticket_id=updated_ticket.id,
+            customer_id=updated_ticket.customer_id,
+            previous_status=current_status,
+            new_status=status,
+        )
+
+        return updated_ticket
