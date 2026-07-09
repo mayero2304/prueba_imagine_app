@@ -6,6 +6,24 @@ Aplicacion web para gestionar clientes y tickets de soporte, desarrollada como p
 
 - [Tablero Kanban en GitHub](https://github.com/users/mayero2304/projects/4/views/1?layout=board)
 - [PDF de la prueba](<PRUEBA TÉCNICA - DESARROLALDOR FINANZ.pdf>)
+- [Coleccion Postman](docs/postman/PRUEBA_IMAGINE_APP.postman_collection.json)
+
+Para importar la coleccion en Postman, use el archivo:
+
+```text
+docs/postman/PRUEBA_IMAGINE_APP.postman_collection.json
+```
+
+Orden recomendado en Postman:
+
+1. `Sistema -> Healthcheck`
+2. `Clientes -> Crear cliente`
+3. `Clientes -> Listar clientes`
+4. `Clientes -> Consultar cliente por ID`
+5. `Tickets -> Crear ticket`
+6. `Tickets -> Listar tickets`
+7. `Tickets -> Actualizar estado a En progreso`
+8. `Tickets -> Actualizar estado a Finalizado`
 
 ## Alcance de la prueba
 

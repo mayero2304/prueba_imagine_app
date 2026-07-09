@@ -1,0 +1,463 @@
+{
+  "info": {
+    "_postman_id": "0d0d979d-1f5e-4e67-8c01-48b6046c96e9",
+    "name": "PRUEBA_IMAGINE_APP - Clientes y Tickets",
+    "description": "Coleccion para probar la API FastAPI de clientes y tickets. Ejecutar en orden: Healthcheck, crear cliente, consultar/listar cliente, crear ticket, listar tickets y actualizar estado.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Sistema",
+      "item": [
+        {
+          "name": "Healthcheck",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Servicio disponible', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.eql('ok');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Clientes",
+      "item": [
+        {
+          "name": "Crear cliente",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const email = `cliente.${Date.now()}@imagine.local`;",
+                  "pm.collectionVariables.set('customer_email', email);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Guarda customer_id', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('id');",
+                  "  pm.collectionVariables.set('customer_id', json.id);",
+                  "  pm.collectionVariables.set('customer_email', json.email);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cliente Demo\",\n  \"email\": \"{{customer_email}}\",\n  \"company\": \"Imagine\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Listar clientes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta es un arreglo', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Consultar cliente por ID",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('customer_id')) {",
+                  "  throw new Error('Ejecute primero Clientes -> Crear cliente');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Cliente consultado coincide', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(String(json.id)).to.eql(String(pm.collectionVariables.get('customer_id')));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers", "{{customer_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tickets",
+      "item": [
+        {
+          "name": "Crear ticket",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('customer_id')) {",
+                  "  throw new Error('Ejecute primero Clientes -> Crear cliente');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Guarda ticket_id', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('id');",
+                  "  pm.expect(json.status).to.eql('Pendiente');",
+                  "  pm.collectionVariables.set('ticket_id', json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": {{customer_id}},\n  \"title\": \"Ticket demo\",\n  \"description\": \"Solicitud creada desde Postman.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tickets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tickets"]
+            }
+          }
+        },
+        {
+          "name": "Listar tickets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta es un arreglo', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tickets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tickets"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar estado a En progreso",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('ticket_id')) {",
+                  "  throw new Error('Ejecute primero Tickets -> Crear ticket');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Estado actualizado', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.eql('En progreso');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"En progreso\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tickets/{{ticket_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tickets", "{{ticket_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar estado a Finalizado",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('ticket_id')) {",
+                  "  throw new Error('Ejecute primero Tickets -> Crear ticket');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Estado finalizado', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.eql('Finalizado');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Finalizado\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tickets/{{ticket_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tickets", "{{ticket_id}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validaciones",
+      "item": [
+        {
+          "name": "Crear ticket con cliente inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 999999,\n  \"title\": \"Ticket invalido\",\n  \"description\": \"Este ticket debe fallar porque el cliente no existe.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tickets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tickets"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar ticket con estado invalido",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('ticket_id')) {",
+                  "  throw new Error('Ejecute primero Tickets -> Crear ticket');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 422', function () {",
+                  "  pm.response.to.have.status(422);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Cancelado\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tickets/{{ticket_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tickets", "{{ticket_id}}", "status"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "customer_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ticket_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
