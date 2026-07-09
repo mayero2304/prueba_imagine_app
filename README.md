@@ -4,7 +4,7 @@ Aplicacion web para gestionar clientes y tickets de soporte, desarrollada como p
 
 ## Documentacion del proyecto
 
-- [Tablero GitHub sugerido](docs/github-board.md)
+- [Tablero Kanban en GitHub](https://github.com/users/mayero2304/projects/4/views/1?layout=board)
 - [PDF de la prueba](<PRUEBA TÉCNICA - DESARROLALDOR FINANZ.pdf>)
 
 ## Alcance de la prueba
