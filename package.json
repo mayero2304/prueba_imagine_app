@@ -14,7 +14,7 @@
     "db:seed": "cd backend && .venv/bin/python -m app.seed",
     "db:fresh": "npm run db:reset && npm run db:seed",
     "db:logs": "docker compose logs -f db",
-    "docker:local:up": "docker compose up -d db",
+    "docker:local:up": "docker compose up --build",
     "docker:local:down": "docker compose down",
     "docker:local:logs": "docker compose logs -f",
     "lint:backend": "cd backend && .venv/bin/ruff check app tests",
